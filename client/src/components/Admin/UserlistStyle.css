@@ -1,0 +1,43 @@
+.mainn {
+    margin: 50px;
+}
+
+@media only screen and (max-width:768px) {
+    .mainn {
+        font-size: 14px;
+        margin: 5px;
+    }
+
+}
+
+@media only screen and (max-width:617px) {
+    .mainn {
+        font-size: 12px;
+        margin: 5px;
+    }
+
+}
+
+@media only screen and (max-width:486px) {
+    .mainn {
+        font-size: 8px;
+        margin: 1px;
+    }
+
+}
+
+@media only screen and (max-width:326px) {
+    .mainn {
+        font-size: 7px;
+        margin: 1px;
+    }
+
+}
+
+@media only screen and (max-width:295px) {
+    .mainn {
+        font-size: 5px;
+        margin: 1px;
+    }
+
+}

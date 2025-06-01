@@ -1,0 +1,55 @@
+.topbar {
+
+    display: flex;
+    justify-content: center;
+    justify-items: center;
+    overflow: hidden;
+    z-index: 1;
+    top: 0;
+    opacity: 0.9;
+}
+.nav {
+    justify-content: end;
+    align-items: center;
+    background-color: black;
+    opacity: 0.8;
+    height: 50px;
+}
+
+.items {
+    color: white;
+
+}
+.items:hover{
+    color: white;
+}
+
+@media only screen and (max-width: 767px) {
+    .items {
+        font-size: smaller;
+        text-align: center;
+        padding-inline: 12px;
+    }
+
+    .nav {
+        justify-content: center;
+        padding: 0%;
+        margin: 0%;
+        width: auto;
+    }
+}
+@media only screen and (max-width: 386px) {
+    .items {
+        font-size: 12px;
+    }
+}
+@media only screen and (max-width: 362px) {
+    .items {
+        font-size: 10px;
+    }
+}
+@media only screen and (max-width: 326px) {
+    .items {
+        font-size: 8px;
+    }
+}

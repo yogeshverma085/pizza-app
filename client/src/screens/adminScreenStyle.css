@@ -1,0 +1,44 @@
+.admin-button {
+    height: 50px;
+    width: 200px;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    text-decoration-color: black;
+    background-color: white;
+    color: rgb(243, 115, 36);
+    border: 1px solid rgb(243, 115, 36);
+    border-inline: 2px solid rgb(243, 115, 36);
+    font-size: 15px;
+    font-family: 'Baloo Bhai 2', cursive;
+
+}
+
+.admin-button:hover {
+    background-color: rgb(243, 115, 36);
+    border: 1px solid rgb(243, 115, 36);
+    border-inline: 2px solid rgb(243, 115, 36);
+}
+
+.box {
+    margin: auto;
+    padding: auto;
+    justify-content: center;
+    justify-items: center;
+    align-items: center;
+}
+
+@media only screen and (min-width: 768px) and (max-width: 991px) {
+    .admin-button {
+        font-size: 12px;
+        height: 40px;
+        width: 150px;
+    }
+}
+
+@media only screen and (max-width: 767px) {
+    .admin-button {
+        font-size: 15px;
+        height: 40px;
+        width: 180px;
+    }
+}

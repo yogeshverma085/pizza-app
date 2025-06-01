@@ -1,0 +1,139 @@
+.cart-main {
+    font-family: 'Baloo Bhai 2', cursive;
+    margin-top: 10px;
+    justify-content: center;
+}
+
+.bill-main {
+    font-style: italic;
+}
+
+.updown-button {
+    box-shadow: 0 0 10px 1px rgba(53, 52, 52, 0.6);
+    border-radius: 4px;
+    padding: 2px;
+    display: flex;
+    height: 30px;
+    width: 70px;
+    align-items: center;
+}
+
+.count {
+    background-color: rgb(229, 226, 226);
+    width: 10px;
+    height: 20px;
+    font-size: medium;
+    padding-inline: 7px;
+    padding-right: 13px;
+    align-items: center;
+    justify-content: center;
+    justify-items: center;
+    text-align: center;
+    border-radius: 2px;
+}
+
+.cart-notice {
+    background-color: aqua;
+    color: rgb(218, 16, 16);
+    text-align: center;
+    margin-top: -10px;
+    margin-bottom: 15px;
+}
+
+.cart-notice-text {
+    font-size: 19px;
+    padding: 8px;
+}
+
+.pizza-name {
+    padding: 0px;
+    margin: 0px;
+
+    color: rgb(5, 113, 3);
+}
+
+.pizza-variety {
+    color: rgb(230, 3, 211);
+}
+
+.rightP {
+    float: right;
+}
+
+.bill-left {
+    float: left;
+
+}
+
+.bill-right {
+    float: right;
+}
+
+@media only screen and (max-width: 768px) {
+    .img-btn {
+        display: none;
+    }
+
+    .name-div {
+        float: left;
+
+    }
+
+    .btn-div {
+        float: right;
+    }
+
+    .right {
+        float: right;
+    }
+
+    .left {
+        float: left;
+
+    }
+
+    .bill-div {
+        display: flex;
+    }
+
+    .cart-notice-text {
+        font-size: 3vw;
+    }
+
+    .sm-text {
+        font-size: medium;
+    }
+
+    .updown-button {
+        padding: 0px;
+        height: 21px;
+    }
+
+    .disc {
+        font-size: small;
+        width: 180px;
+    }
+}
+
+@media only screen and (max-width: 325px){
+    .pizza-name{
+        font-size: 16px;
+    }
+    .pizza-variety{
+        font-size: 15px;
+    }
+    .updown-button{
+        height: 15px;
+    }
+    .count{
+        width: 7px;
+        height: 14px;
+        font-size: 12px;
+    }
+    .name-div{
+        width: 155px;
+    }
+    .disc{
+        width: 150px;
+    }
+}

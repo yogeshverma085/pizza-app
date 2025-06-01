@@ -1,0 +1,51 @@
+
+@media only screen and (max-width:767px){
+    .table-main{
+        font-size: 13px;
+    }
+}
+@media only screen and (max-width:523px){
+    .table-main{
+        font-size: 12px;
+    }
+    .imgg{
+        width: 60px;
+        height: 60px;
+    }
+}
+@media only screen and (max-width:478px){
+    .table-main{
+        font-size: 11px;
+    }
+    .imgg{
+        width: 45px;
+        height: 45px;
+    }
+}
+@media only screen and (max-width:423px){
+    .table-main{
+        font-size: 9px;
+    }
+    .imgg{
+        width: 30px;
+        height: 30px;
+    }
+}
+@media only screen and (max-width:360px){
+    .table-main{
+        font-size: 8.5px;
+    }
+    .imgg{
+        width: 27px;
+        height: 27px;
+    }
+}
+@media only screen and (max-width:345px){
+    .table-main{
+        font-size: 8px;
+    }
+    .imgg{
+        width: 20px;
+        height: 20px;
+    }
+}

@@ -1,0 +1,30 @@
+.order-main{
+    font-family: 'Baloo Bhai 2', cursive;
+}
+
+.order-time-div{
+    /* background-color: aqua; */
+    /* background-color: rgb(243, 115, 36); */
+    background-color: rgb(230, 95, 12);
+    color: aliceblue;
+    text-align: center;
+    margin-top: 10px;
+    margin-bottom: -5px;
+    padding-bottom: 0%;
+    
+}
+
+.order-time-text{
+    display: flex;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    /* font-size: 12px; */
+}
+
+.order-time-text-price{
+    padding-top: 9px;
+    color: rgb(60, 233, 242);
+    
+    
+}

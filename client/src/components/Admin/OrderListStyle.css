@@ -1,0 +1,42 @@
+.mainn{
+    font-size: 12px;
+    margin: 50px;
+}
+@media only screen and (max-width:870px){
+    .mainn{
+        font-size: 10px;
+        margin: 20px;
+    }
+}
+@media only screen and (max-width:711px){
+    .mainn{
+        font-size: 9px;
+        margin: 10px;
+    }
+}
+@media only screen and (max-width:639px){
+    .mainn{
+        font-size: 7px;
+        margin: 5px;
+    }
+}
+@media only screen and (max-width:465px){
+    .mainn{
+        font-size: 6px;
+        margin: 1px;
+    }
+}
+@media only screen and (max-width:415px){
+    .mainn{
+        font-size: 5px;
+        margin: 1px;
+        /* padding: 0px; */
+    }
+}
+@media only screen and (max-width:366px){
+    .mainn{
+        font-size: 5px;
+        margin: 1px;
+        /* width: 20px; */
+    }
+}

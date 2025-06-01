@@ -1,0 +1,42 @@
+.main{
+    width: 700px;
+    
+}
+.button {
+    background-color: rgb(243, 115, 36);
+    width: 627px;
+    border: none;
+}
+@media only screen and (max-width: 767px){
+    .main{
+        width: 400px;
+        font-size: small;
+    }
+    .button{
+        width:327px
+    }
+    .place {
+        font-size: smaller;
+    }
+}
+@media only screen and (max-width: 412px){
+    .main{
+        width: 300px;
+        font-size: smaller;
+    }
+    .button{
+        width: 227px;
+    }
+    .place {
+        font-size: 10px;
+        padding-inline: 2px;
+    }
+}
+@media only screen and (max-width: 312px){
+    .main{
+        width: 200px;
+    }
+    .button{
+        width: 127px;
+    }
+}
