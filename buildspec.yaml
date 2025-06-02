@@ -4,7 +4,7 @@ phases:
   pre_build:
     commands:
       - echo Starting pre-build...
-      - mvn clean install
+      # - mvn clean install
       - echo Logging in to Amazon ECR...
       - aws --version
       - REPOSITORY_URI=197821712540.dkr.ecr.eu-north-1.amazonaws.com/pizza-app-repo
