@@ -1,0 +1,30 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 16
+    commands:
+      # Install backend dependencies
+      - npm install
+
+  build:
+    commands:
+      # Build frontend if you have client folder
+      - cd client
+      - npm install
+      - npm run build
+      - cd ..
+
+artifacts:
+  files:
+      - client/**/*
+      - public/**/*
+      - src/**/*
+      - models/**/*         # Include all files in models folder
+      - routes/**/*         # Include all files in routes folder
+      - config/**/*         # Include all files in config folder
+      - package.json
+      - server.js
+      - ec2-deploy/appspec.yml
+      - ec2-deploy/scripts/**/*

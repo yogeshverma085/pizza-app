@@ -3,10 +3,14 @@ version: 0.2
 phases:
   pre_build:
     commands:
+      # - echo Logging in to Docker Hub...
+      # - DOCKERHUB_USERNAME=yogeshverma085@gmail.com
+      # - DOCKERHUB_PASSWORD=Yogesh@2106
+      # - echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
       - set -e
       - echo Starting pre-build...
       # - mvn clean install
-      - echo Logging in to Amazon ECR...
+      - echo Logging in to Amazon ECR...   
       - aws --version
       - REPOSITORY_URI=197821712540.dkr.ecr.us-east-1.amazonaws.com/pizza-app-repo
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $REPOSITORY_URI
