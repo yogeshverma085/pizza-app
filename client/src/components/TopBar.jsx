@@ -20,7 +20,7 @@ const TopBar = () => {
 
                 <Nav className="m-auto nav">
                     <Nav.Item>
-                         <Nav.Link className="items" href="/">Home</Nav.Link>
+                         <Nav.Link className="items" href="/">New Home</Nav.Link>
                     </Nav.Item>
                     <Nav.Item>
                          <Nav.Link className="items" href="/about">About Us</Nav.Link>
