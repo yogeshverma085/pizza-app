@@ -3,10 +3,8 @@ version: 0.2
 phases:
   pre_build:
     commands:
-      # - echo Logging in to Docker Hub...
-      # - DOCKERHUB_USERNAME=yogeshverma085@gmail.com
-      # - DOCKERHUB_PASSWORD=Yogesh@2106
-      # - echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+      - echo Logging in to Docker Hub...
+      - echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
       - set -e
       - echo Starting pre-build...
       # - mvn clean install
