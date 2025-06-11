@@ -1,18 +1,22 @@
 #!/bin/bash
 
-# Change working directoryy
-cd /home/ec2-user/server
+# Exit on any error
+set -e
 
-# Remove old modules and build
+echo "Navigating to project root..."
+cd /home/ec2-user
+
+echo "Cleaning old node_modules and frontend build..."
 rm -rf node_modules
 rm -rf client/node_modules
 rm -rf client/build
 
-# Install backend dependencies
+echo "Installing backend dependencies..."
 npm install
 
-# Install frontend and build
+echo "Installing frontend dependencies and building React app..."
 cd client
-
 npm install
 npm run build
+
+echo "After install script completed successfully."

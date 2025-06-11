@@ -25,6 +25,6 @@ artifacts:
       - routes/**/*         # Include all files in routes folder
       - config/**/*         # Include all files in config folder
       - package.json
-      - server.js
+      - index.js
       - appspec.yml
       - scripts/**/*
