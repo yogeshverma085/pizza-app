@@ -26,5 +26,5 @@ artifacts:
       - config/**/*         # Include all files in config folder
       - package.json
       - server.js
-      - ec2-deploy/appspec.yml
-      - ec2-deploy/scripts/**/*
+      - appspec.yml
+      - scripts/**/*
