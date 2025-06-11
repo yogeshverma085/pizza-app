@@ -13,5 +13,6 @@ npm install
 
 # Install frontend and build
 cd client
+
 npm install
 npm run build

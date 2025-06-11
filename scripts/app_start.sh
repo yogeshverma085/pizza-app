@@ -7,4 +7,4 @@ cd /home/ec2-user/server
 pm2 delete pizzavillage || true
 
 # Start the app with PM2
-pm2 start server.js --name pizzavillage
+pm2 start index.js --name pizzavillage
