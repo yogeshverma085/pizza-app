@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Change working directory
+# Change working directoryy
 cd /home/ec2-user/server
 
 # Remove old modules and build

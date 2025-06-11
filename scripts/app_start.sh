@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Change working directory
+# Change working directoryy
 cd /home/ec2-user/server
 
 # Stop and remove old PM2 process

@@ -17,11 +17,6 @@ hooks:
       runas: ec2-user
       timeout: 300
 
-  # BeforeBlockTraffic:
-  #   - location: ec2-deploy/scripts/before_block_traffic.sh
-  #     runas: ec2-user
-  #     timeout: 300
-
   AfterInstall:
     - location: scripts/after_install.sh
       runas: ec2-user
