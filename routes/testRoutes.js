@@ -8,7 +8,7 @@ router.get("/unauthorized", (req, res) => {
 
 // 500 test route
 router.get("/server-error", (req, res) => {
-  throw new Error("Simulated server error");
+  res.status(500).json({ error: "Internal server error" });
 });
 
 module.exports = router;
