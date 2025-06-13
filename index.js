@@ -21,6 +21,8 @@ app.use(morgan("dev"));
 app.use("/api/pizzas", require("./routes/pizzaRoute"));
 app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/orders", require("./routes/orderRoute"));
+app.use("/api/test", require("./routes/testRoutes"));
+
 
 app.use(express.static(path.join(__dirname, "./client/build")));
 app.get("*", function (_, res) {
