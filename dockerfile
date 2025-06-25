@@ -17,6 +17,7 @@ WORKDIR /app
 # Copy backend files
 COPY package*.json ./
 COPY index.js ./
+COPY db.js ./
 COPY config ./config
 COPY routes ./routes
 COPY models ./models
