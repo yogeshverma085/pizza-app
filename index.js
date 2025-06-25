@@ -22,6 +22,7 @@ app.use("/api/pizzas", require("./routes/pizzaRoute"));
 app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/orders", require("./routes/orderRoute"));
 app.use("/api/test", require("./routes/testRoutes"));
+app.use("/api/db", require("./routes/dbRoute"));
 
 
 app.use(express.static(path.join(__dirname, "./client/build")));
@@ -44,21 +45,3 @@ app.listen(port, async () => {
   }
 });
 
-// if (process.env.NODE_ENV === "production") {
-//   app.use(express.static(path.join(__dirname, '/client/build')));
-//   app.get('*', (req, res) => {
-//     res.sendFile(path.resolve(__dirname, "client", "build", "index.html"));
-//   });
-// } else {
-//   app.get("/", (req, res) => {
-//     res.send("<h1>Hlo node server via nodemon</h1>");
-//   });
-// }
-
-// const port = process.env.PORT || 8080;
-// app.listen(port, () => {
-//   console.log(
-//     `server running on ${process.env.NODE_ENV} mode on port ${process.env.PORT}`
-//       .bgMagenta.white
-//   );
-// });
