@@ -24,30 +24,12 @@ const client = appInsights.defaultClient;
 
 // ----------------- Express App -----------------
 const app = express();
-
-// Middlewares
 app.use(express.json());
 app.use(morgan("dev"));
 
-// ----------------- App Insights Middleware for Request Operation -----------------
-app.use((req, res, next) => {
-  // Start a request operation for this incoming request
-  const operation = client.startOperation(req.method, req.url);
-  req.appInsightsOperation = operation;
-
-  res.on("finish", () => {
-    client.stopOperation(operation);
-    client.flush();
-  });
-
-  next();
-});
-
-// ----------------- Helper to track any async operation -----------------
+// ----------------- Helper to track any async operation as child span -----------------
 function trackAsync(name, fn) {
   return async function (...args) {
-    // Find Express req to link parent
-    const req = args.find(a => a && a.appInsightsOperation);
     const start = Date.now();
     let success = true;
 
@@ -59,17 +41,14 @@ function trackAsync(name, fn) {
       throw err;
     } finally {
       const duration = Date.now() - start;
-
       client.trackDependency({
         target: "CustomOperation",
         name,
-        data: "", // optional info
+        data: "",
         duration,
         success,
         dependencyTypeName: "InProc",
-        id: req?.appInsightsOperation?.id, // link to parent request
       });
-
       client.flush();
     }
   };
@@ -88,7 +67,7 @@ app.get("*", function (_, res) {
   res.sendFile(
     path.join(__dirname, "./client/build/index.html"),
     function (err) {
-      res.status(500).send(err);
+      if (err) res.status(500).send(err);
     }
   );
 });
@@ -103,13 +82,6 @@ app.listen(port, async () => {
     console.log(e.message);
   }
 });
-
-// ----------------- Example usage of trackAsync -----------------
-// Any async DB or custom operation
-// const trackedFunc = trackAsync("MyCustomOperation", async () => {
-//   // your async code here
-// });
-// trackedFunc(req, ...);
 
 
 
