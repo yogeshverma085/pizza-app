@@ -4,9 +4,21 @@ const connectDB = require("./config/config");
 const path = require("path");
 require("colors");
 const morgan = require("morgan");
+const appInsights = require("applicationinsights");
 
 // config dotenv
 dotenv.config();
+
+appInsights.setup(process.env.APPINSIGHTS_CONNECTIONSTRING)
+  .setAutoDependencyCorrelation(true)   // link requests to dependencies
+  .setAutoCollectRequests(true)         // HTTP requests
+  .setAutoCollectPerformance(true)      // CPU, memory
+  .setAutoCollectExceptions(true)       // Errors
+  .setAutoCollectDependencies(true)     // External calls, MongoDB if supported
+  .setSendLiveMetrics(true)
+  .start();
+
+const client = appInsights.defaultClient;
 
 // connection mongodb
 // connectDB();
@@ -23,7 +35,6 @@ app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/orders", require("./routes/orderRoute"));
 app.use("/api/test", require("./routes/testRoutes"));
 app.use("/api/db", require("./routes/dbRoute"));
-
 
 app.use(express.static(path.join(__dirname, "./client/build")));
 app.get("*", function (_, res) {
