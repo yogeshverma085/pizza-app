@@ -9,7 +9,7 @@ const appInsights = require("applicationinsights");
 // config dotenv
 dotenv.config();
 
-// ----------------- App Insights Setup ----------------
+// ----------------- App Insights Setup -----------------
 appInsights
   .setup(process.env.APPINSIGHTS_CONNECTIONSTRING)
   .setAutoDependencyCorrelation(true)   // link requests to dependencies
