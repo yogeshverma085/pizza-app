@@ -38,9 +38,9 @@ function trackTrace(message, severity = appInsights.Contracts.SeverityLevel.Info
 // ----------------- Track Async with Child Spans -----------------
 function trackAsync(fn, name) {
   return async function (req, res, next) {
-    const operation = client.startOperation(req, name || fn.name || "anonymous_operation");
+    const operation = appInsights.startOperation(req, name || fn.name || "anonymous_operation");
 
-    return appInsights.defaultClient.context.wrapExecutionContext(operation, async () => {
+    return client.context.runWithContext(operation, async () => {
       const start = Date.now();
       let success = true;
 
@@ -60,9 +60,8 @@ function trackAsync(fn, name) {
           success,
           dependencyTypeName: "InProc",
         });
-        client.flush();
       }
-    })();
+    });
   };
 }
 
@@ -145,6 +144,7 @@ process.on("SIGTERM", () => {
   client.flush();
   process.exit(0);
 });
+
 
 
 
