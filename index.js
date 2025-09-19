@@ -38,9 +38,12 @@ function trackTrace(message, severity = appInsights.Contracts.SeverityLevel.Info
 // ----------------- Track Async with Child Spans -----------------
 function trackAsync(fn, name) {
   return async function (req, res, next) {
-    const operation = appInsights.startOperation(req, name || fn.name || "anonymous_operation");
+    const operation = appInsights.defaultClient.context.telemetryContext.startOperation(
+      { request: req },
+      name || fn.name || "anonymous_operation"
+    );
 
-    return client.context.runWithContext(operation, async () => {
+    return appInsights.defaultClient.context.withinContext(operation, async () => {
       const start = Date.now();
       let success = true;
 
@@ -48,11 +51,11 @@ function trackAsync(fn, name) {
         return await fn(req, res, next);
       } catch (err) {
         success = false;
-        client.trackException({ exception: err });
+        appInsights.defaultClient.trackException({ exception: err });
         throw err;
       } finally {
         const duration = Date.now() - start;
-        client.trackDependency({
+        appInsights.defaultClient.trackDependency({
           target: "CustomOperation",
           name: name || fn.name || "anonymous_operation",
           data: req.originalUrl,
@@ -64,6 +67,7 @@ function trackAsync(fn, name) {
     });
   };
 }
+
 
 // ----------------- Auto-wrap All Route Handlers -----------------
 function autoWrapRoutes(router) {
