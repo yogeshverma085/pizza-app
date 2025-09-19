@@ -3,7 +3,7 @@ name: Build & Deploy Docker Image
 on:
   push:
     branches:
-      - main  # branch to trigger workflow
+      - master  # branch to trigger workflow
 
 jobs:
   build-and-deploy:
