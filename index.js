@@ -68,20 +68,24 @@ function trackAsync(fn, name) {
 
 // ----------------- Auto-wrap All Route Handlers -----------------
 function autoWrapRoutes(router) {
-  if (!router.stack) return router;
+  if (!router || !router.stack) return router;
+
   router.stack.forEach((layer) => {
     if (layer.route) {
       const routeMethods = Object.keys(layer.route.methods);
       routeMethods.forEach((method) => {
         layer.route.stack.forEach((routeLayer) => {
-          routeLayer.handle = trackAsync(
-            routeLayer.handle,
-            `${method.toUpperCase()} ${layer.route.path}`
-          );
+          if (typeof routeLayer.handle === "function") {
+            routeLayer.handle = trackAsync(
+              routeLayer.handle,
+              `${method.toUpperCase()} ${layer.route.path}`
+            );
+          }
         });
       });
     }
   });
+
   return router;
 }
 
