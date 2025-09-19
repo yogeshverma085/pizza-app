@@ -13,10 +13,10 @@ dotenv.config();
 appInsights
   .setup(process.env.APPINSIGHTS_CONNECTIONSTRING)
   .setAutoDependencyCorrelation(true)   // link requests to dependencies
-  .setAutoCollectRequests(true)         // HTTP requests
+  .setAutoCollectRequests(true)         // incoming requests
   .setAutoCollectPerformance(true)      // CPU, memory
-  .setAutoCollectExceptions(true)       // Errors
-  .setAutoCollectDependencies(true)     // External calls, MongoDB if supported
+  .setAutoCollectExceptions(true)       // errors
+  .setAutoCollectDependencies(true)     // outgoing http/https/db
   .setSendLiveMetrics(true)
   .start();
 
@@ -31,7 +31,11 @@ function trackException(error, props = {}) {
   client.trackException({ exception: error, properties: props });
 }
 
-function trackTrace(message, severity = appInsights.Contracts.SeverityLevel.Information, props = {}) {
+function trackTrace(
+  message,
+  severity = appInsights.Contracts.SeverityLevel.Information,
+  props = {}
+) {
   client.trackTrace({ message, severity, properties: props });
 }
 
@@ -40,73 +44,41 @@ const app = express();
 app.use(express.json());
 app.use(morgan("dev"));
 
-// ----------------- Helper to track async operations -----------------
-function trackAsync(fn, name) {
-  return async function (...args) {
-    const start = Date.now();
-    let success = true;
+// ----------------- Force child span per request -----------------
+app.use((req, res, next) => {
+  const start = Date.now();
 
-    try {
-      return await fn(...args);
-    } catch (err) {
-      success = false;
-      throw err;
-    } finally {
-      const duration = Date.now() - start;
-      client.trackDependency({
-        target: "CustomOperation",
-        name: name || fn.name || "anonymous_operation",
-        data: "",
-        duration,
-        success,
-        dependencyTypeName: "InProc",
-      });
-      client.flush();
-    }
-  };
-}
+  res.on("finish", () => {
+    const duration = Date.now() - start;
 
-// ----------------- Auto-wrap all route handlers -----------------
-function autoWrapRoutes(router) {
-  const methods = ["get", "post", "put", "delete", "patch"];
-  if (!router.stack) return router;
-
-  router.stack.forEach((layer) => {
-    if (layer.route) {
-      const routeMethods = Object.keys(layer.route.methods);
-      routeMethods.forEach((method) => {
-        layer.route.stack.forEach((routeLayer, index) => {
-          routeLayer.handle = trackAsync(routeLayer.handle, `${method.toUpperCase()} ${layer.route.path}`);
-        });
-      });
-    }
+    // Only add a manual child span if auto-collection didn’t create one
+    client.trackDependency({
+      target: req.hostname,
+      name: `${req.method} ${req.originalUrl}`,
+      data: `${req.protocol}://${req.get("host")}${req.originalUrl}`,
+      duration,
+      resultCode: res.statusCode,
+      success: res.statusCode < 400,
+      dependencyTypeName: "HTTP (Manual)",
+    });
   });
 
-  return router;
-}
+  next();
+});
 
 // ----------------- Routes -----------------
-const pizzaRouter = autoWrapRoutes(require("./routes/pizzaRoute"));
-const userRouter = autoWrapRoutes(require("./routes/userRoutes"));
-const orderRouter = autoWrapRoutes(require("./routes/orderRoute"));
-const testRouter = autoWrapRoutes(require("./routes/testRoutes"));
-const dbRouter = autoWrapRoutes(require("./routes/dbRoute"));
-
-app.use("/api/pizzas", pizzaRouter);
-app.use("/api/users", userRouter);
-app.use("/api/orders", orderRouter);
-app.use("/api/test", testRouter);
-app.use("/api/db", dbRouter);
+app.use("/api/pizzas", require("./routes/pizzaRoute"));
+app.use("/api/users", require("./routes/userRoutes"));
+app.use("/api/orders", require("./routes/orderRoute"));
+app.use("/api/test", require("./routes/testRoutes"));
+app.use("/api/db", require("./routes/dbRoute"));
 
 // Serve frontend
 app.use(express.static(path.join(__dirname, "./client/build")));
 app.get("*", (req, res) => {
-  res.sendFile(
-    path.join(__dirname, "./client/build/index.html"),
-    function (err) {
-      if (err) res.status(500).send(err);
-    }
-  );
+  res.sendFile(path.join(__dirname, "./client/build/index.html"), function (err) {
+    if (err) res.status(500).send(err);
+  });
 });
 
 // ----------------- Start Server -----------------
@@ -131,7 +103,7 @@ app.listen(port, async () => {
 // const morgan = require("morgan");
 // const appInsights = require("applicationinsights");
 
-// // ----------------- Config -----------------
+// // config dotenv
 // dotenv.config();
 
 // // ----------------- App Insights Setup -----------------
@@ -160,55 +132,48 @@ app.listen(port, async () => {
 //   client.trackTrace({ message, severity, properties: props });
 // }
 
-// // ----------------- Track Async with Child Spans -----------------
+// // ----------------- Express App -----------------
+// const app = express();
+// app.use(express.json());
+// app.use(morgan("dev"));
+
+// // ----------------- Helper to track async operations -----------------
 // function trackAsync(fn, name) {
-//   return async function (req, res, next) {
-//     const operation = appInsights.defaultClient.context.telemetryContext.startOperation(
-//       { request: req },
-//       name || fn.name || "anonymous_operation"
-//     );
+//   return async function (...args) {
+//     const start = Date.now();
+//     let success = true;
 
-//     return appInsights.defaultClient.context.withinContext(operation, async () => {
-//       const start = Date.now();
-//       let success = true;
-
-//       try {
-//         return await fn(req, res, next);
-//       } catch (err) {
-//         success = false;
-//         appInsights.defaultClient.trackException({ exception: err });
-//         throw err;
-//       } finally {
-//         const duration = Date.now() - start;
-//         appInsights.defaultClient.trackDependency({
-//           target: "CustomOperation",
-//           name: name || fn.name || "anonymous_operation",
-//           data: req.originalUrl,
-//           duration,
-//           success,
-//           dependencyTypeName: "InProc",
-//         });
-//       }
-//     });
+//     try {
+//       return await fn(...args);
+//     } catch (err) {
+//       success = false;
+//       throw err;
+//     } finally {
+//       const duration = Date.now() - start;
+//       client.trackDependency({
+//         target: "CustomOperation",
+//         name: name || fn.name || "anonymous_operation",
+//         data: "",
+//         duration,
+//         success,
+//         dependencyTypeName: "InProc",
+//       });
+//       client.flush();
+//     }
 //   };
 // }
 
-
-// // ----------------- Auto-wrap All Route Handlers -----------------
+// // ----------------- Auto-wrap all route handlers -----------------
 // function autoWrapRoutes(router) {
-//   if (!router || !router.stack) return router;
+//   const methods = ["get", "post", "put", "delete", "patch"];
+//   if (!router.stack) return router;
 
 //   router.stack.forEach((layer) => {
 //     if (layer.route) {
 //       const routeMethods = Object.keys(layer.route.methods);
 //       routeMethods.forEach((method) => {
-//         layer.route.stack.forEach((routeLayer) => {
-//           if (typeof routeLayer.handle === "function") {
-//             routeLayer.handle = trackAsync(
-//               routeLayer.handle,
-//               `${method.toUpperCase()} ${layer.route.path}`
-//             );
-//           }
+//         layer.route.stack.forEach((routeLayer, index) => {
+//           routeLayer.handle = trackAsync(routeLayer.handle, `${method.toUpperCase()} ${layer.route.path}`);
 //         });
 //       });
 //     }
@@ -216,11 +181,6 @@ app.listen(port, async () => {
 
 //   return router;
 // }
-
-// // ----------------- Express App -----------------
-// const app = express();
-// app.use(express.json());
-// app.use(morgan("dev"));
 
 // // ----------------- Routes -----------------
 // const pizzaRouter = autoWrapRoutes(require("./routes/pizzaRoute"));
@@ -235,47 +195,29 @@ app.listen(port, async () => {
 // app.use("/api/test", testRouter);
 // app.use("/api/db", dbRouter);
 
-// // Example route with custom telemetry
-// app.get("/api/test/insights", async (req, res) => {
-//   trackEvent("TestEndpointHit", { route: "/api/test/insights" });
-//   trackTrace("Processing request...", appInsights.Contracts.SeverityLevel.Information);
-
-//   try {
-//     await new Promise((resolve) => setTimeout(resolve, 200)); // simulate DB/API
-//     res.json({ msg: "App Insights custom telemetry working!" });
-//   } catch (err) {
-//     trackException(err);
-//     res.status(500).send("Error occurred");
-//   }
-// });
-
-// // ----------------- Serve Frontend -----------------
+// // Serve frontend
 // app.use(express.static(path.join(__dirname, "./client/build")));
 // app.get("*", (req, res) => {
-//   res.sendFile(path.join(__dirname, "./client/build/index.html"), (err) => {
-//     if (err) res.status(500).send(err);
-//   });
+//   res.sendFile(
+//     path.join(__dirname, "./client/build/index.html"),
+//     function (err) {
+//       if (err) res.status(500).send(err);
+//     }
+//   );
 // });
 
 // // ----------------- Start Server -----------------
 // const port = process.env.PORT || 8080;
 // app.listen(port, async () => {
 //   try {
-//     await connectDB(); // Mongo connection
+//     await connectDB();
 //     console.log(`Server running on port ${port}`.bgMagenta.white);
 //   } catch (e) {
 //     console.log(e.message);
 //   }
 // });
 
-// // ----------------- Flush Telemetry on Exit -----------------
-// process.on("SIGTERM", () => {
-//   client.flush();
-//   process.exit(0);
-// });
-
-
-
+// ----------------- Legacy Code (for reference) -----------------
 
 // const express = require("express");
 // const dotenv = require("dotenv");
