@@ -8,6 +8,7 @@ const appInsights = require("applicationinsights");
 const cors = require("cors");
 const axios = require("axios");
 
+// ----------------- Config dotenv -----------------
 dotenv.config();
 
 // ----------------- App Insights Setup -----------------
@@ -25,6 +26,7 @@ const client = appInsights.defaultClient;
 
 // ----------------- Axios wrapper for AI child spans -----------------
 const api = axios.create();
+
 api.interceptors.request.use((config) => {
   const dependency = client.startDependencyTelemetry({
     target: config.baseURL || config.url,
@@ -35,6 +37,7 @@ api.interceptors.request.use((config) => {
   config.__dependency = dependency;
   return config;
 });
+
 api.interceptors.response.use(
   (response) => {
     if (response.config.__dependency) {
@@ -51,6 +54,7 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
 module.exports.api = api;
 
 // ----------------- Express App -----------------
@@ -58,22 +62,16 @@ const app = express();
 app.use(express.json());
 app.use(morgan("dev"));
 
-// ----------------- CORS -----------------
-app.use(cors({
-  origin: "*", // allow all origins; works for localhost & production
-  credentials: true
-}));
+// ----------------- CORS Setup -----------------
+const allowedOrigins = [
+  "http://localhost:3000", // frontend local dev
+  "https://<your-frontend-domain>.azurewebsites.net", // production frontend
+];
 
-// ----------------- Force HTTPS in Azure -----------------
-app.use((req, res, next) => {
-  // Azure App Service terminates SSL, but front-end may call http
-  if (req.headers["x-arr-ssl"] || process.env.NODE_ENV === "production") {
-    // already HTTPS in Azure
-    return next();
-  }
-  // local dev, keep HTTP
-  return next();
-});
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+}));
 
 // ----------------- API Routes -----------------
 app.use("/api/pizzas", require("./routes/pizzaRoute"));
@@ -85,7 +83,7 @@ app.use("/api/db", require("./routes/dbRoute"));
 // ----------------- Serve Frontend -----------------
 app.use(express.static(path.join(__dirname, "./client/build")));
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "./client/build/index.html"), err => {
+  res.sendFile(path.join(__dirname, "./client/build/index.html"), (err) => {
     if (err) res.status(500).send(err);
   });
 });
@@ -100,6 +98,7 @@ app.listen(port, async () => {
     console.log(e.message);
   }
 });
+
 
 
 
