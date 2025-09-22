@@ -3,7 +3,7 @@ name: Deploy MERN App
 on:
   push:
     branches:
-      - master   # deploy on push to main branch
+      - main   # deploy on push to main branch
 
 jobs:
   deploy:
@@ -18,14 +18,12 @@ jobs:
       with:
         node-version: '18'  # your Node.js version
 
-    - name: Install dependencies
-      run: |
-        cd backend
-        npm install
+    - name: Install backend dependencies
+      run: npm install    # backend is in root
 
     - name: Build frontend
       run: |
-        cd frontend
+        cd client
         npm install
         npm run build
 
@@ -47,7 +45,7 @@ jobs:
         key: ${{ secrets.VM_SSH_KEY }}
         port: 22
         script: |
-          cd ~/app/backend
+          cd ~/app
           npm install
           pm2 restart pizzaapp || pm2 start server.js --name pizzaapp
           pm2 save
