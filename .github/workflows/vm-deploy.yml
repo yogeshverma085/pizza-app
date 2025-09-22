@@ -1,0 +1,53 @@
+name: Deploy MERN App
+
+on:
+  push:
+    branches:
+      - main   # deploy on push to main branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'  # your Node.js version
+
+    - name: Install dependencies
+      run: |
+        cd backend
+        npm install
+
+    - name: Build frontend
+      run: |
+        cd frontend
+        npm install
+        npm run build
+
+    - name: Copy files to VM
+      uses: appleboy/scp-action@v0.1.5
+      with:
+        host: ${{ secrets.VM_HOST }}
+        username: ${{ secrets.VM_USER }}
+        key: ${{ secrets.VM_SSH_KEY }}
+        port: 22
+        source: "."
+        target: "~/app"
+
+    - name: SSH commands to start app
+      uses: appleboy/ssh-action@v0.1.6
+      with:
+        host: ${{ secrets.VM_HOST }}
+        username: ${{ secrets.VM_USER }}
+        key: ${{ secrets.VM_SSH_KEY }}
+        port: 22
+        script: |
+          cd ~/app/backend
+          npm install
+          pm2 restart pizzaapp || pm2 start server.js --name pizzaapp
+          pm2 save
