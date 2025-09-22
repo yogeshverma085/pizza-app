@@ -65,7 +65,7 @@ app.use(morgan("dev"));
 // ----------------- CORS Setup -----------------
 const allowedOrigins = [
   "http://localhost:3000", // frontend local dev
-  "https://<your-frontend-domain>.azurewebsites.net", // production frontend
+  "https://pizzaapptest-ejc6fdbjgya4cvhg.eastus-01.azurewebsites.net", // production frontend
 ];
 
 app.use(cors({
