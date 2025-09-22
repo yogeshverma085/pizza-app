@@ -5,44 +5,26 @@ const path = require("path");
 require("colors");
 const morgan = require("morgan");
 const appInsights = require("applicationinsights");
+const cors = require("cors");
 const axios = require("axios");
 
-// ----------------- Config dotenv -----------------
 dotenv.config();
 
 // ----------------- App Insights Setup -----------------
 appInsights
   .setup(process.env.APPINSIGHTS_CONNECTIONSTRING)
-  .setAutoDependencyCorrelation(true)   // link requests to dependencies
-  .setAutoCollectRequests(true)         // incoming requests
-  .setAutoCollectPerformance(true)      // CPU, memory
-  .setAutoCollectExceptions(true)       // errors
-  .setAutoCollectDependencies(true)     // outgoing http/https/db
+  .setAutoDependencyCorrelation(true)
+  .setAutoCollectRequests(true)
+  .setAutoCollectPerformance(true)
+  .setAutoCollectExceptions(true)
+  .setAutoCollectDependencies(true)
   .setSendLiveMetrics(true)
   .start();
 
 const client = appInsights.defaultClient;
 
-// ----------------- Telemetry Helpers -----------------
-function trackEvent(name, props = {}) {
-  client.trackEvent({ name, properties: props });
-}
-
-function trackException(error, props = {}) {
-  client.trackException({ exception: error, properties: props });
-}
-
-function trackTrace(
-  message,
-  severity = appInsights.Contracts.SeverityLevel.Information,
-  props = {}
-) {
-  client.trackTrace({ message, severity, properties: props });
-}
-
 // ----------------- Axios wrapper for AI child spans -----------------
 const api = axios.create();
-
 api.interceptors.request.use((config) => {
   const dependency = client.startDependencyTelemetry({
     target: config.baseURL || config.url,
@@ -53,7 +35,6 @@ api.interceptors.request.use((config) => {
   config.__dependency = dependency;
   return config;
 });
-
 api.interceptors.response.use(
   (response) => {
     if (response.config.__dependency) {
@@ -70,8 +51,6 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
-// Export if you want to reuse in routes
 module.exports.api = api;
 
 // ----------------- Express App -----------------
@@ -79,17 +58,34 @@ const app = express();
 app.use(express.json());
 app.use(morgan("dev"));
 
-// ----------------- Routes -----------------
+// ----------------- CORS -----------------
+app.use(cors({
+  origin: "*", // allow all origins; works for localhost & production
+  credentials: true
+}));
+
+// ----------------- Force HTTPS in Azure -----------------
+app.use((req, res, next) => {
+  // Azure App Service terminates SSL, but front-end may call http
+  if (req.headers["x-arr-ssl"] || process.env.NODE_ENV === "production") {
+    // already HTTPS in Azure
+    return next();
+  }
+  // local dev, keep HTTP
+  return next();
+});
+
+// ----------------- API Routes -----------------
 app.use("/api/pizzas", require("./routes/pizzaRoute"));
 app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/orders", require("./routes/orderRoute"));
 app.use("/api/test", require("./routes/testRoutes"));
 app.use("/api/db", require("./routes/dbRoute"));
 
-// Serve frontend
+// ----------------- Serve Frontend -----------------
 app.use(express.static(path.join(__dirname, "./client/build")));
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "./client/build/index.html"), function (err) {
+  res.sendFile(path.join(__dirname, "./client/build/index.html"), err => {
     if (err) res.status(500).send(err);
   });
 });
