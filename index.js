@@ -11,7 +11,7 @@ const appInsights = require("applicationinsights");
 
 dotenv.config();
 
-// ----------------- Express App ----------------
+// ----------------- Express App ---------------
 const app = express();
 // ----------------- Trust proxy for correct HTTPS detection -----------------
 app.set("trust proxy", true);
