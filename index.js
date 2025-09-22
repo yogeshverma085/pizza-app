@@ -5,8 +5,9 @@ const path = require("path");
 require("colors");
 const morgan = require("morgan");
 const appInsights = require("applicationinsights");
+const axios = require("axios");
 
-// config dotenv
+// ----------------- Config dotenv -----------------
 dotenv.config();
 
 // ----------------- App Insights Setup -----------------
@@ -39,32 +40,44 @@ function trackTrace(
   client.trackTrace({ message, severity, properties: props });
 }
 
+// ----------------- Axios wrapper for AI child spans -----------------
+const api = axios.create();
+
+api.interceptors.request.use((config) => {
+  const dependency = client.startDependencyTelemetry({
+    target: config.baseURL || config.url,
+    name: `${config.method?.toUpperCase()} ${config.url}`,
+    data: config.url,
+    dependencyTypeName: "HTTP",
+  });
+  config.__dependency = dependency;
+  return config;
+});
+
+api.interceptors.response.use(
+  (response) => {
+    if (response.config.__dependency) {
+      response.config.__dependency.success = response.status < 400;
+      client.endDependencyTelemetry(response.config.__dependency);
+    }
+    return response;
+  },
+  (error) => {
+    if (error.config?.__dependency) {
+      error.config.__dependency.success = false;
+      client.endDependencyTelemetry(error.config.__dependency);
+    }
+    return Promise.reject(error);
+  }
+);
+
+// Export if you want to reuse in routes
+module.exports.api = api;
+
 // ----------------- Express App -----------------
 const app = express();
 app.use(express.json());
 app.use(morgan("dev"));
-
-// ----------------- Force child span per request -----------------
-app.use((req, res, next) => {
-  const start = Date.now();
-
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-
-    // Only add a manual child span if auto-collection didn’t create one
-    client.trackDependency({
-      target: req.hostname,
-      name: `${req.method} ${req.originalUrl}`,
-      data: `${req.protocol}://${req.get("host")}${req.originalUrl}`,
-      duration,
-      resultCode: res.statusCode,
-      success: res.statusCode < 400,
-      dependencyTypeName: "HTTP (Manual)",
-    });
-  });
-
-  next();
-});
 
 // ----------------- Routes -----------------
 app.use("/api/pizzas", require("./routes/pizzaRoute"));
@@ -110,10 +123,10 @@ app.listen(port, async () => {
 // appInsights
 //   .setup(process.env.APPINSIGHTS_CONNECTIONSTRING)
 //   .setAutoDependencyCorrelation(true)   // link requests to dependencies
-//   .setAutoCollectRequests(true)         // HTTP requests
+//   .setAutoCollectRequests(true)         // incoming requests
 //   .setAutoCollectPerformance(true)      // CPU, memory
-//   .setAutoCollectExceptions(true)       // Errors
-//   .setAutoCollectDependencies(true)     // External calls, MongoDB if supported
+//   .setAutoCollectExceptions(true)       // errors
+//   .setAutoCollectDependencies(true)     // outgoing http/https/db
 //   .setSendLiveMetrics(true)
 //   .start();
 
@@ -128,7 +141,11 @@ app.listen(port, async () => {
 //   client.trackException({ exception: error, properties: props });
 // }
 
-// function trackTrace(message, severity = appInsights.Contracts.SeverityLevel.Information, props = {}) {
+// function trackTrace(
+//   message,
+//   severity = appInsights.Contracts.SeverityLevel.Information,
+//   props = {}
+// ) {
 //   client.trackTrace({ message, severity, properties: props });
 // }
 
@@ -137,73 +154,41 @@ app.listen(port, async () => {
 // app.use(express.json());
 // app.use(morgan("dev"));
 
-// // ----------------- Helper to track async operations -----------------
-// function trackAsync(fn, name) {
-//   return async function (...args) {
-//     const start = Date.now();
-//     let success = true;
+// // ----------------- Force child span per request -----------------
+// app.use((req, res, next) => {
+//   const start = Date.now();
 
-//     try {
-//       return await fn(...args);
-//     } catch (err) {
-//       success = false;
-//       throw err;
-//     } finally {
-//       const duration = Date.now() - start;
-//       client.trackDependency({
-//         target: "CustomOperation",
-//         name: name || fn.name || "anonymous_operation",
-//         data: "",
-//         duration,
-//         success,
-//         dependencyTypeName: "InProc",
-//       });
-//       client.flush();
-//     }
-//   };
-// }
+//   res.on("finish", () => {
+//     const duration = Date.now() - start;
 
-// // ----------------- Auto-wrap all route handlers -----------------
-// function autoWrapRoutes(router) {
-//   const methods = ["get", "post", "put", "delete", "patch"];
-//   if (!router.stack) return router;
-
-//   router.stack.forEach((layer) => {
-//     if (layer.route) {
-//       const routeMethods = Object.keys(layer.route.methods);
-//       routeMethods.forEach((method) => {
-//         layer.route.stack.forEach((routeLayer, index) => {
-//           routeLayer.handle = trackAsync(routeLayer.handle, `${method.toUpperCase()} ${layer.route.path}`);
-//         });
-//       });
-//     }
+//     // Only add a manual child span if auto-collection didn’t create one
+//     client.trackDependency({
+//       target: req.hostname,
+//       name: `${req.method} ${req.originalUrl}`,
+//       data: `${req.protocol}://${req.get("host")}${req.originalUrl}`,
+//       duration,
+//       resultCode: res.statusCode,
+//       success: res.statusCode < 400,
+//       dependencyTypeName: "HTTP (Manual)",
+//     });
 //   });
 
-//   return router;
-// }
+//   next();
+// });
 
 // // ----------------- Routes -----------------
-// const pizzaRouter = autoWrapRoutes(require("./routes/pizzaRoute"));
-// const userRouter = autoWrapRoutes(require("./routes/userRoutes"));
-// const orderRouter = autoWrapRoutes(require("./routes/orderRoute"));
-// const testRouter = autoWrapRoutes(require("./routes/testRoutes"));
-// const dbRouter = autoWrapRoutes(require("./routes/dbRoute"));
-
-// app.use("/api/pizzas", pizzaRouter);
-// app.use("/api/users", userRouter);
-// app.use("/api/orders", orderRouter);
-// app.use("/api/test", testRouter);
-// app.use("/api/db", dbRouter);
+// app.use("/api/pizzas", require("./routes/pizzaRoute"));
+// app.use("/api/users", require("./routes/userRoutes"));
+// app.use("/api/orders", require("./routes/orderRoute"));
+// app.use("/api/test", require("./routes/testRoutes"));
+// app.use("/api/db", require("./routes/dbRoute"));
 
 // // Serve frontend
 // app.use(express.static(path.join(__dirname, "./client/build")));
 // app.get("*", (req, res) => {
-//   res.sendFile(
-//     path.join(__dirname, "./client/build/index.html"),
-//     function (err) {
-//       if (err) res.status(500).send(err);
-//     }
-//   );
+//   res.sendFile(path.join(__dirname, "./client/build/index.html"), function (err) {
+//     if (err) res.status(500).send(err);
+//   });
 // });
 
 // // ----------------- Start Server -----------------
@@ -216,64 +201,3 @@ app.listen(port, async () => {
 //     console.log(e.message);
 //   }
 // });
-
-// ----------------- Legacy Code (for reference) -----------------
-
-// const express = require("express");
-// const dotenv = require("dotenv");
-// const connectDB = require("./config/config");
-// const path = require("path");
-// require("colors");
-// const morgan = require("morgan");
-// const appInsights = require("applicationinsights");
-
-// // config dotenv
-// dotenv.config();
-
-// appInsights.setup(process.env.APPINSIGHTS_CONNECTIONSTRING)
-//   .setAutoDependencyCorrelation(true)   // link requests to dependencies
-//   .setAutoCollectRequests(true)         // HTTP requests
-//   .setAutoCollectPerformance(true)      // CPU, memory
-//   .setAutoCollectExceptions(true)       // Errors
-//   .setAutoCollectDependencies(true)     // External calls, MongoDB if supported
-//   .setSendLiveMetrics(true)
-//   .start();
-
-// const client = appInsights.defaultClient; 
-
-// // connection mongodb
-// // connectDB();
-
-// const app = express();
-
-// //middlewares
-// app.use(express.json());
-// app.use(morgan("dev"));
-
-// // route
-// app.use("/api/pizzas", require("./routes/pizzaRoute"));
-// app.use("/api/users", require("./routes/userRoutes"));
-// app.use("/api/orders", require("./routes/orderRoute"));
-// app.use("/api/test", require("./routes/testRoutes"));
-// app.use("/api/db", require("./routes/dbRoute"));
-
-// app.use(express.static(path.join(__dirname, "./client/build")));
-// app.get("*", function (_, res) {
-//   res.sendFile(
-//     path.join(__dirname, "./client/build/index.html"),
-//     function (err) {
-//       res.status(500).send(err);
-//     }
-//   );
-// });
-
-// const port = process.env.PORT || 8080;
-// app.listen(port, async () => {
-//   try {
-//     await connectDB();
-//     console.log(`server running on mode on port ${process.env.PORT}`.bgMagenta.white);
-//   } catch (e) {
-//     console.log(e.message);
-//   }
-// });
-
