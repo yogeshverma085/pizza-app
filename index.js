@@ -17,13 +17,13 @@ const app = express();
 app.set("trust proxy", true);
 
 // ----------------- Redirect HTTP to HTTPS -----------------
-app.use((req, res, next) => {
-  if (!req.secure) {
-    // Redirect HTTP → HTTPS
-    return res.redirect(`https://${req.headers.host}${req.url}`);
-  }
-  next();
-});
+// app.use((req, res, next) => {
+//   if (!req.secure) {
+//     // Redirect HTTP → HTTPS
+//     return res.redirect(`https://${req.headers.host}${req.url}`);
+//   }
+//   next();
+// });
 
 app.use(express.json());
 app.use(morgan("dev"));
