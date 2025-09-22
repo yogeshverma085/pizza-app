@@ -11,6 +11,24 @@ const appInsights = require("applicationinsights");
 
 dotenv.config();
 
+// ----------------- Express App -----------------
+const app = express();
+// ----------------- Trust proxy for correct HTTPS detection -----------------
+app.set("trust proxy", true);
+
+// ----------------- Redirect HTTP to HTTPS -----------------
+app.use((req, res, next) => {
+  if (!req.secure) {
+    // Redirect HTTP → HTTPS
+    return res.redirect(`https://${req.headers.host}${req.url}`);
+  }
+  next();
+});
+
+app.use(express.json());
+app.use(morgan("dev"));
+app.use(cors({ origin: "*", credentials: true }));
+
 // ----------------- App Insights Setup -----------------
 appInsights
   .setup(process.env.APPINSIGHTS_CONNECTIONSTRING)
@@ -24,13 +42,6 @@ appInsights
 
 const client = appInsights.defaultClient;
 
-// ----------------- Express App -----------------
-const app = express();
-app.use(express.json());
-app.use(morgan("dev"));
-app.use(cors({ origin: "*", credentials: true }));
-
-app.set("trust proxy", true);
 
 // ----------------- Middleware: Track all incoming requests -----------------
 app.use((req, res, next) => {
