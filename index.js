@@ -15,10 +15,10 @@ dotenv.config();
 appInsights
   .setup(process.env.APPINSIGHTS_CONNECTIONSTRING)
   .setAutoDependencyCorrelation(true)
-  .setAutoCollectRequests(true)
+  .setAutoCollectRequests(true)       // track incoming requests
   .setAutoCollectPerformance(true)
   .setAutoCollectExceptions(true)
-  .setAutoCollectDependencies(true)
+  .setAutoCollectDependencies(true)   // track outgoing HTTP/HTTPS
   .setSendLiveMetrics(true)
   .start();
 
@@ -30,7 +30,7 @@ app.use(express.json());
 app.use(morgan("dev"));
 app.use(cors({ origin: "*", credentials: true }));
 
-// ----------------- Middleware: Track incoming requests -----------------
+// ----------------- Middleware: Track all incoming requests -----------------
 app.use((req, res, next) => {
   const start = Date.now();
 
@@ -51,7 +51,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// ----------------- Axios wrapper: Track outgoing requests -----------------
+// ----------------- Axios wrapper: Track outgoing HTTP & HTTPS -----------------
 const api = axios.create();
 
 api.interceptors.request.use((config) => {
@@ -67,7 +67,7 @@ api.interceptors.request.use((config) => {
 
 api.interceptors.response.use(
   (response) => {
-    if (response.config.__dependency) {
+    if (response.config?.__dependency) {
       response.config.__dependency.success = response.status < 400;
       client.endDependencyTelemetry(response.config.__dependency);
     }
@@ -75,7 +75,7 @@ api.interceptors.response.use(
   },
   (error) => {
     if (error.config?.__dependency) {
-      error.config.__dependency.success = false;
+      error.config.__dependency.success = false; // ✅ fixed
       client.endDependencyTelemetry(error.config.__dependency);
     }
     return Promise.reject(error);
@@ -109,6 +109,7 @@ app.listen(port, async () => {
     console.log(e.message);
   }
 });
+
 
 
 
