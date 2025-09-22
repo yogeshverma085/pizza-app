@@ -47,5 +47,5 @@ jobs:
         script: |
           cd ~/app
           npm install
-          pm2 restart pizzaapp || pm2 start server.js --name pizzaapp
+          pm2 restart pizzaappvm || pm2 start index.js --name pizzaappvm
           pm2 save
