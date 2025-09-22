@@ -30,6 +30,8 @@ app.use(express.json());
 app.use(morgan("dev"));
 app.use(cors({ origin: "*", credentials: true }));
 
+app.set("trust proxy", true);
+
 // ----------------- Middleware: Track all incoming requests -----------------
 app.use((req, res, next) => {
   const start = Date.now();
